@@ -625,7 +625,7 @@ void iDraw()
 	iPolygon(poly[0], poly[1], 12);
 
 	// Show goals
-	// showGoal();
+	showGoal();
 
 	// Draw Arrow
 	drawArrow(objects[selectedPlayer].p);

@@ -618,7 +618,7 @@ void iDraw()
 	iClear();
 
 	// Field
-	iShowBMP(0, 30, "Images/Field - Copy.bmp");
+	iShowBMP(0, 30, "Images/Field.bmp");
 
 	// Drawing Map Border
 	iSetColor(255, 0, 0);
@@ -632,11 +632,10 @@ void iDraw()
 
 	// Draw Ball
 	// iShowBMP2(objects[0].p[0]-10, objects[0].p[1]-10, "Images/BallNew.bmp", 0x00FF00);
+	drawBall();
 
 	// Draw Objects
 	drawPlayers();
-
-	drawBall();
 
 	// Show Menu
 	if (showMenu != 0) iShowBMP(0, 5, "Images/MainMenu.bmp");

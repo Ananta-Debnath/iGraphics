@@ -1,6 +1,9 @@
+
+# Folders
 /Samples/
 /Images/Extras/
 /Images/Raw/
 
+# Files
 test.c
 test.exe

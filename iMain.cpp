@@ -24,7 +24,7 @@ typedef struct
 	double uk;
 	double r;
 	double color[3];
-} 
+}
 object;
 
 

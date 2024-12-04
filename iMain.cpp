@@ -54,6 +54,8 @@ const double FORMATION[][5][2] = {{{0, 70}, {55, 30}, {-55, 30}, {0, 150}, {0, 2
 char ballImgAddress[] = "Images/Ball/_.bmp";
 char redScoreAddress[] = "Images/Scores/Red_0.bmp";
 char blueScoreAddress[] = "Images/Scores/Blue_0.bmp";
+char muteAddress[2][20] = {"Images/Unmute.bmp", "Images/Mute.bmp"};
+char pauseAddress[2][20] = {"Images/Pause.bmp", "Images/Play.bmp"};
 
 
 object objects[(perTeam*2)+1];
@@ -79,6 +81,8 @@ int winGoal = 3;
 int showMenu = 1;
 int askFormation = 0;
 int showGoalPopUp = 0;
+int muteState = 0;
+int pauseState = 0;
 
 
 
@@ -646,6 +650,10 @@ void iDraw()
 	// Draw Objects
 	drawPlayers();
 
+	// Pause Button
+	iShowBMP2(400, 700, pauseAddress[pauseState], 0x0000ff);
+	iCircle(422, 723, 16);
+
 	// Show Menu
 	if (showMenu != 0) iShowBMP(0, 5, "Images/MainMenu.bmp");
 	// testForMenu();
@@ -660,6 +668,10 @@ void iDraw()
 	// Win Pop Up
 	if (showGoalPopUp == 3) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/BlueWins.bmp");
 	if (showGoalPopUp == 4) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/RedWins.bmp");
+
+	// Mute Button
+	iShowBMP2(450, 700, muteAddress[muteState], 0x0000ff);
+	// iCircle(472, 723, 16);
 	
 }
 
@@ -667,8 +679,11 @@ void iMouse(int button, int state, int mx, int my)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
-		selectedPlayer = selectObject(mx, my);
-		// printf("Selected: %d\n", selectedPlayer);
+		// Mute
+		if ((mx-472)*(mx-472) + (my-723)*(my-723) < 16*16)
+		{
+			muteState = (muteState + 1) % 2;
+		}
 
 		if (showMenu == 1)
 		{
@@ -686,7 +701,7 @@ void iMouse(int button, int state, int mx, int my)
 			}
 		}
 
-		if (askFormation == 1)
+		else if (askFormation == 1)
 		{
 			// Blue Team
 			if (my > 147 && my < 252)
@@ -721,6 +736,18 @@ void iMouse(int button, int state, int mx, int my)
 			{
 				askFormation = 0;
 				iResumeTimer(0);
+			}
+		}
+
+		else 
+		{
+			selectedPlayer = selectObject(mx, my);
+			// printf("Selected: %d\n", selectedPlayer);
+
+			// Pause
+			if ((mx-422)*(mx-422) + (my-723)*(my-723) < 16*16)
+			{
+				pauseState = (pauseState + 1) % 2;
 			}
 		}
 	}
@@ -759,7 +786,19 @@ void iMouseMove(int mx, int my)
 
 void iKeyboard(unsigned char key)
 {
+	// Mute
+	if (key == 'm')
+	{
+		muteState = (muteState + 1) % 2;
+	}
 
+	if (showMenu == 0 && askFormation == 0)
+	{
+		if (key == 'p')
+		{
+			pauseState = (pauseState + 1) % 2;
+		}
+	}
 }
 
 void iSpecialKeyboard(unsigned char key)

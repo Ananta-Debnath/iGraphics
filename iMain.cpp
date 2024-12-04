@@ -62,6 +62,8 @@ int selectedPlayer = 0;
 double powerX = 0, powerY = 0;
 double Pmax = 120;
 
+int selectedFormation[2] = {0, 0};
+
 int movingSide = 1;
 int moveEnd = 1;
 
@@ -75,6 +77,7 @@ int goalNum[2] = {0};
 int winGoal = 3;
 
 int showMenu = 1;
+int askFormation = 0;
 int showGoalPopUp = 0;
 
 
@@ -136,7 +139,7 @@ void spawnObjects()
 	// set position
 	objects[0].p[0] = CENTER[0];
 	objects[0].p[1] = CENTER[1];
-	setPlayerPositions(3, 2);
+	setPlayerPositions(selectedFormation[0], selectedFormation[1]);
 }
 
 
@@ -146,8 +149,6 @@ void initializeMatch()
 	goalNum[1] = 0;
 
 	spawnObjects();
-
-	iResumeTimer(0);
 
 	showMenu = 0;
 }
@@ -176,7 +177,8 @@ int isMovePossible()
 {
 	double d = sqrt(powerX*powerX + powerY*powerY);
 	if (showMenu == 0 && moveEnd == 1 && d > minDr &&
-		selectedPlayer > (movingSide-1)*perTeam && selectedPlayer <= movingSide*perTeam)
+		selectedPlayer > (movingSide-1)*perTeam && selectedPlayer <= movingSide*perTeam &&
+		askFormation == 0)
 	{
 		return 1;
 	}
@@ -425,13 +427,14 @@ void collisionWithObject()
 void goalCelebration()
 {
 	iPauseTimer(1);
+	iPauseTimer(0);
 	
 	if (showGoalPopUp == 3 || showGoalPopUp == 4)
 	{
 		showMenu = 1;
-		iPauseTimer(0);
 	}
 
+	askFormation = 1;
 	showGoalPopUp = 0;
 	spawnObjects();
 }
@@ -560,7 +563,13 @@ void showGoal()
 
 void showFormationPopup()
 {
-	iShowBMP2(10, 100, "Images/Formation.bmp", 0x0000FF);
+	iShowBMP2(0, 100, "Images/Formation.bmp", 0x0000ff);
+	iShowBMP2(0, 475, "Images/Formation.bmp", 0x0000ff);
+	iShowBMP2(CENTER[0] - 62, CENTER[1] - 28.5, "Images/FormationPlay.bmp", 0x0000ff);
+
+	iSetColor(255, 0, 0);
+	iRectangle(9 + selectedFormation[0]*122, 147, 117, 105);
+	iRectangle(9 + selectedFormation[1]*122, 522, 117, 105);
 }
 
 
@@ -642,7 +651,7 @@ void iDraw()
 	// testForMenu();
 
 	// Show Formation
-	// showFormationPopup();
+	if (askFormation == 1) showFormationPopup();
 
 	// Goal Celebration Pop up
 	if (showGoalPopUp == 1) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/BlueScores.bmp");
@@ -666,6 +675,7 @@ void iMouse(int button, int state, int mx, int my)
 			// Play
 			if (((mx-252.0)/57.0)*((mx-252.0)/57.0) + ((my-520.0)/22.0)*((my-520.0)/22.0) < 1)
 			{
+				askFormation = 1;
 				initializeMatch();
 			}
 
@@ -673,6 +683,44 @@ void iMouse(int button, int state, int mx, int my)
 			else if (((mx-254.0)/57.0)*((mx-254.0)/57.0) + ((my-222.0)/20.0)*((my-222.0)/20.0) < 1)
 			{
 				exit(0);
+			}
+		}
+
+		if (askFormation == 1)
+		{
+			// Blue Team
+			if (my > 147 && my < 252)
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					if (mx > 9 + 122*i && mx < 126 + 122*i)
+					{
+						selectedFormation[0] = i;
+						setPlayerPositions(selectedFormation[0], selectedFormation[1]);
+						break;
+					}
+				}
+			}
+
+			// Red Team
+			else if (my > 522 && my < 639)
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					if (mx > 9 + 122*i && mx < 126 + 122*i)
+					{
+						selectedFormation[1] = i;
+						setPlayerPositions(selectedFormation[0], selectedFormation[1]);
+						break;
+					}
+				}
+			}
+
+			// Play
+			else if (((mx-CENTER[0])/57.0)*((mx-CENTER[0])/57.0) + ((my-CENTER[1])/22.0)*((my-CENTER[1])/22.0) < 1)
+			{
+				askFormation = 0;
+				iResumeTimer(0);
 			}
 		}
 	}

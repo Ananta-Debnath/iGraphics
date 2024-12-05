@@ -652,7 +652,17 @@ void iDraw()
 
 	// Pause Button
 	iShowBMP2(400, 700, pauseAddress[pauseState], 0x0000ff);
-	iCircle(422, 723, 16);
+	// iCircle(422, 723, 16);
+
+	// Pause Menu
+	if (pauseState == 1) iShowBMP2(CENTER[0] - 222, CENTER[1] - 218, "Images/PauseMenu.bmp", 0x0000ff);
+	/*
+	iSetColor(255, 0, 0);
+	iCircle(250, 543, 32); // Play
+	iCircle(250, 238, 32); // Exit
+	iCircle(397, 433, 32); // Controls
+	iCircle(100, 434, 32); // Settings
+	*/
 
 	// Show Menu
 	if (showMenu != 0) iShowBMP(0, 5, "Images/MainMenu.bmp");
@@ -693,11 +703,20 @@ void iMouse(int button, int state, int mx, int my)
 				askFormation = 1;
 				initializeMatch();
 			}
-
 			// Exit
 			else if (((mx-254.0)/57.0)*((mx-254.0)/57.0) + ((my-222.0)/20.0)*((my-222.0)/20.0) < 1)
 			{
 				exit(0);
+			}
+			// Settings
+			else if ((mx-100)*(mx-100) + (my-434)*(my-434) < 32*32)
+			{
+				printf("Settings\n");
+			}
+			// Controls
+			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
+			{
+				printf("Controls\n");
 			}
 		}
 
@@ -739,6 +758,33 @@ void iMouse(int button, int state, int mx, int my)
 			}
 		}
 
+		else if (pauseState == 1)
+		{
+			// Play
+			if ((mx-250)*(mx-250) + (my-543)*(my-543) < 32*32)
+			{
+				pauseState = 0;
+				iResumeTimer(0);
+			}
+			// Exit
+			else if ((mx-250)*(mx-250) + (my-238)*(my-238) < 32*32)
+			{
+				showMenu = 1;
+				pauseState = 0;
+				iPauseTimer(0);
+			}
+			// Settings
+			else if ((mx-100)*(mx-100) + (my-434)*(my-434) < 32*32)
+			{
+				printf("Settings\n");
+			}
+			// Controls
+			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
+			{
+				printf("Controls\n");
+			}
+		}
+
 		else 
 		{
 			selectedPlayer = selectObject(mx, my);
@@ -748,6 +794,9 @@ void iMouse(int button, int state, int mx, int my)
 			if ((mx-422)*(mx-422) + (my-723)*(my-723) < 16*16)
 			{
 				pauseState = (pauseState + 1) % 2;
+
+				if (pauseState == 1) iPauseTimer(0);
+				else iResumeTimer(0);
 			}
 		}
 	}
@@ -797,6 +846,9 @@ void iKeyboard(unsigned char key)
 		if (key == 'p')
 		{
 			pauseState = (pauseState + 1) % 2;
+
+			if (pauseState == 1) iPauseTimer(0);
+			else iResumeTimer(0);
 		}
 	}
 }

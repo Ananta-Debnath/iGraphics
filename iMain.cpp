@@ -422,6 +422,7 @@ void collisionWithObject()
 			{
 				afterCollisionPosition(&objects[i], &objects[j], d);
 				afterCollisionVelocity(&objects[i], &objects[j]);
+				if (muteState == 0 && i == 0) PlaySound("Sounds\\Kick.wav", NULL, SND_ASYNC);
 			}
 		}
 	}
@@ -437,8 +438,11 @@ void goalCelebration()
 	{
 		showMenu = 1;
 	}
+	else
+	{
+		askFormation = 1;
+	}
 
-	askFormation = 1;
 	showGoalPopUp = 0;
 	spawnObjects();
 }
@@ -476,9 +480,14 @@ void isGoal()
 			default:
 				break;
 			}
+			if (muteState == 0) PlaySound("Sounds\\Goal.wav", NULL, SND_ASYNC);
 
 			// Win
-			if (goalNum[showGoalPopUp-1] == winGoal) showGoalPopUp += 2;
+			if (goalNum[showGoalPopUp-1] == winGoal)
+			{
+				if (muteState == 0) PlaySound("Sounds\\Win.wav", NULL, SND_ASYNC);
+				showGoalPopUp += 2;
+			}
 		}
 	}
 }
@@ -754,6 +763,7 @@ void iMouse(int button, int state, int mx, int my)
 			else if (((mx-CENTER[0])/57.0)*((mx-CENTER[0])/57.0) + ((my-CENTER[1])/22.0)*((my-CENTER[1])/22.0) < 1)
 			{
 				askFormation = 0;
+				if (muteState == 0) PlaySound("Sounds\\KickOff.wav", NULL, SND_ASYNC);
 				iResumeTimer(0);
 			}
 		}

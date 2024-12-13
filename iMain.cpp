@@ -81,6 +81,8 @@ int goalNum[2] = {0};
 int winGoal = 3;
 int gameMode = 1;
 
+clock_t goalCelebTimer = 0;
+
 int showMenu = 1;
 int settingsState = 0;
 int gameModeHelpState = 0;
@@ -437,8 +439,8 @@ void collisionWithObject()
 
 void goalCelebration()
 {
-	iPauseTimer(1);
 	iPauseTimer(0);
+	goalCelebTimer = 0;
 	
 	if (showGoalPopUp == 3 || showGoalPopUp == 4)
 	{
@@ -470,7 +472,7 @@ void isGoal()
 		showGoalPopUp = isInGoalSpace(objects[0].p);
 		if (showGoalPopUp != 0)
 		{
-			iResumeTimer(1);
+			goalCelebTimer = clock() + 2*CLOCKS_PER_SEC;
 			switch (showGoalPopUp)
 			{
 			case 1:
@@ -643,6 +645,8 @@ void perFrame()
 	}
 
 	if (moveEnd == 0) swapMove();
+
+	if (goalCelebTimer != 0 && goalCelebTimer <= clock()) goalCelebration();
 
 
 
@@ -934,9 +938,6 @@ int main()
 {
 	iSetTimer(15, perFrame); // iA0
 	iPauseTimer(0);
-
-	iSetTimer(4000, goalCelebration); // iA1
-	// iPauseTimer(1);
 
 	iInitialize(SCREENWIDTH, SCREENHEIGHT, "2D Football");
 	return 0;

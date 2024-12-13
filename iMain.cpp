@@ -13,6 +13,7 @@
 #define vMin 0.1
 
 #define MAXDEVMETER 10
+#define DEFDEVLIMIT 15
 
 
 
@@ -71,14 +72,19 @@ int moveEnd = 1;
 
 double deviationScale[2] = {1, 1};
 double deviationLimit;
+double maxDevLimit = DEFDEVLIMIT;
 int deviationMeter = 0;
 int deviationNext = 1;
 
 
 int goalNum[2] = {0};
 int winGoal = 3;
+int gameMode = 1;
 
 int showMenu = 1;
+int settingsState = 0;
+int gameModeHelpState = 0;
+int controlsState = 0;
 int askFormation = 0;
 int showGoalPopUp = 0;
 int muteState = 0;
@@ -232,7 +238,7 @@ void addDeviation()
 {
 	double d = sqrt(powerX*powerX + powerY*powerY);
 	deviationLimit = d / 4.0;
-	if (deviationLimit > 30) deviationLimit = 30;
+	if (deviationLimit > maxDevLimit) deviationLimit = maxDevLimit;
 
 	if (abs(deviationMeter) == MAXDEVMETER) deviationNext *= -1;
 	deviationMeter += deviationNext;
@@ -438,7 +444,7 @@ void goalCelebration()
 	{
 		showMenu = 1;
 	}
-	else
+	else if (showGoalPopUp == 1 || showGoalPopUp == 2)
 	{
 		askFormation = 1;
 	}
@@ -574,10 +580,22 @@ void showGoal()
 }
 
 
+void showSettings()
+{
+	iShowBMP(50, 175, "Images/Settings.bmp");
+	iShowBMP2(35, 545, "Images/Close.bmp", 0x0000ff);
+	iSetColor(255, 0, 0);
+	// iCircle(57, 568, 16); // Close
+	// iCircle(348, 300, 12); // Help
+	iCircle(224 + ((winGoal/2)*83), 402, 36); // Win Goal
+	iRectangle(72 + (gameMode*123), 224, 112, 35); // Game Mode
+
+}
+
 void showFormationPopup()
 {
-	iShowBMP2(0, 100, "Images/Formation.bmp", 0x0000ff);
-	iShowBMP2(0, 475, "Images/Formation.bmp", 0x0000ff);
+	iShowBMP2(0, 100, "Images/FormationBlue.bmp", 0x0000ff);
+	iShowBMP2(0, 475, "Images/FormationRed.bmp", 0x0000ff);
 	iShowBMP2(CENTER[0] - 62, CENTER[1] - 28.5, "Images/FormationPlay.bmp", 0x0000ff);
 
 	iSetColor(255, 0, 0);
@@ -673,13 +691,16 @@ void iDraw()
 	iCircle(100, 434, 32); // Settings
 	*/
 
-	// Show Menu
-	if (showMenu != 0) iShowBMP(0, 5, "Images/MainMenu.bmp");
-	// testForMenu();
-
 	// Show Formation
 	if (askFormation == 1) showFormationPopup();
 
+	// Show Menu
+	if (showMenu == 1) iShowBMP(0, 5, "Images/MainMenu.bmp");
+	// testForMenu();
+
+	// Show Settings
+	if (settingsState == 1) showSettings();
+	
 	// Goal Celebration Pop up
 	if (showGoalPopUp == 1) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/BlueScores.bmp");
 	if (showGoalPopUp == 2) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/RedScores.bmp");
@@ -704,7 +725,44 @@ void iMouse(int button, int state, int mx, int my)
 			muteState = (muteState + 1) % 2;
 		}
 
-		if (showMenu == 1)
+		if (settingsState == 1)
+		{
+			// Close
+			if ((mx-57)*(mx-57) + (my-568)*(my-568) < 16*16)
+			{
+				settingsState = 0;
+			}
+			// Help
+			else if ((mx-348)*(mx-348) + (my-300)*(my-300) < 12*12) // iCircle(348, 300, 12);
+			{
+				gameModeHelpState = 1;
+				printf("Help!\n");
+			}
+			// Game Mode
+			else if (my > 224 && my < 259)
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					if (mx > 72 + i*123 && mx < 184 + i*123)
+					{
+						gameMode = i;
+						maxDevLimit = DEFDEVLIMIT * gameMode;
+						break;
+					}
+				}
+			}
+			// Win Goal
+			for (int i = 0; i < 3; i++)
+			{
+				if ((mx-(224 + (i*83)))*(mx-(224 + (i*83))) + (my-402)*(my-402) < 32*32)
+				{
+					winGoal = (2*i) + 1;
+					break;
+				}
+			}
+		}
+
+		else if (showMenu == 1)
 		{
 			// Play
 			if (((mx-252.0)/57.0)*((mx-252.0)/57.0) + ((my-520.0)/22.0)*((my-520.0)/22.0) < 1)
@@ -720,7 +778,8 @@ void iMouse(int button, int state, int mx, int my)
 			// Settings
 			else if ((mx-100)*(mx-100) + (my-434)*(my-434) < 32*32)
 			{
-				printf("Settings\n");
+				settingsState = 1;
+				// printf("Settings\n");
 			}
 			// Controls
 			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
@@ -786,7 +845,8 @@ void iMouse(int button, int state, int mx, int my)
 			// Settings
 			else if ((mx-100)*(mx-100) + (my-434)*(my-434) < 32*32)
 			{
-				printf("Settings\n");
+				settingsState = 1;
+				// printf("Settings\n");
 			}
 			// Controls
 			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
@@ -832,6 +892,7 @@ void iMouse(int button, int state, int mx, int my)
 
 void iMouseMove(int mx, int my)
 {
+	// printf("%d  %d\n", mx, my);
 	int p = selectedPlayer;
 	if (p != 0)
 	{
@@ -875,7 +936,7 @@ int main()
 	iPauseTimer(0);
 
 	iSetTimer(4000, goalCelebration); // iA1
-	iPauseTimer(1);
+	// iPauseTimer(1);
 
 	iInitialize(SCREENWIDTH, SCREENHEIGHT, "2D Football");
 	return 0;

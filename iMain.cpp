@@ -68,7 +68,7 @@ double Pmax = 120;
 int selectedFormation[2] = {0, 0};
 
 int movingSide = 1;
-int moveEnd = 1;
+bool moveEnd = true;
 
 double deviationScale[2] = {1, 1};
 double deviationLimit;
@@ -83,11 +83,11 @@ int gameMode = 1;
 
 clock_t goalCelebTimer = 0;
 
-int showMenu = 1;
-int settingsState = 0;
-int gameModeHelpState = 0;
-int controlsState = 0;
-int askFormation = 0;
+bool showMenu = true;
+bool settingsState = false;
+bool gameModeHelpState = false;
+bool controlsState = false;
+bool askFormation = false;
 int showGoalPopUp = 0;
 int muteState = 0;
 int pauseState = 0;
@@ -162,7 +162,7 @@ void initializeMatch()
 
 	spawnObjects();
 
-	showMenu = 0;
+	showMenu = false;
 }
 
 
@@ -174,28 +174,28 @@ double measureDistance(double x1, double y1, double x2, double y2)
 	return d;
 }
 
-int isMoving()
+bool isMoving()
 {
 	for (int i = 0; i <= 2*perTeam; i++)
 	{
 		double v[2] = {objects[i].v[0], objects[i].v[1]};
 		double vr2 = (v[0]*v[0]) + (v[1]*v[1]);
-		if (vr2 > vMin*vMin) return 1;
+		if (vr2 > vMin*vMin) return true;
 	}
-	return 0;
+	return false;
 }
 
-int isMovePossible()
+bool isMovePossible()
 {
 	double d = sqrt(powerX*powerX + powerY*powerY);
-	if (showMenu == 0 && moveEnd == 1 && d > minDr &&
+	if (!showMenu && moveEnd && d > minDr &&
 		selectedPlayer > (movingSide-1)*perTeam && selectedPlayer <= movingSide*perTeam &&
-		askFormation == 0)
+		!askFormation)
 	{
-		return 1;
+		return true;
 	}
 
-	else return 0;
+	else return false;
 }
 
 
@@ -229,7 +229,7 @@ void addVelocity()
 	objects[p].v[0] = dx * vk;
 	objects[p].v[1] = dy * vk;
 
-	moveEnd = 0;
+	moveEnd = false;
 
 	// printf("P --> %f %f\n", powerX, powerY);
 	// printf("v --> %f %f\n", objects[p].v[0], objects[p].v[1]);
@@ -283,9 +283,9 @@ void moveObjects()
 
 void swapMove()
 {
-	if (isMoving() == 0)
+	if (!isMoving())
 	{
-		moveEnd = 1;
+		moveEnd = true;
 		movingSide = (movingSide % 2) + 1;
 	}
 }
@@ -444,11 +444,11 @@ void goalCelebration()
 	
 	if (showGoalPopUp == 3 || showGoalPopUp == 4)
 	{
-		showMenu = 1;
+		showMenu = true;
 	}
 	else if (showGoalPopUp == 1 || showGoalPopUp == 2)
 	{
-		askFormation = 1;
+		askFormation = true;
 	}
 
 	showGoalPopUp = 0;
@@ -535,7 +535,7 @@ void drawPlayers()
 
 void drawArrow(double* p)
 {
-	if (isMovePossible() == 0) return;
+	if (!isMovePossible()) return;
 
 	double dx = powerX * deviationScale[0];
 	double dy = powerY * deviationScale[1];
@@ -648,7 +648,7 @@ void perFrame()
 
 	if (selectedPlayer != 0) addDeviation();
 
-	if (showMenu == 0)
+	if (!showMenu)
 	{
 		moveObjects();
 		collisionWithBorder();
@@ -656,7 +656,7 @@ void perFrame()
 		isGoal();
 	}
 
-	if (moveEnd == 0) swapMove();
+	if (!moveEnd) swapMove();
 
 	if (goalCelebTimer != 0 && goalCelebTimer <= clock()) goalCelebration();
 
@@ -696,32 +696,6 @@ void iDraw()
 	// Pause Button
 	iShowBMP2(400, 700, pauseAddress[pauseState], 0x0000ff);
 	// iCircle(422, 723, 16);
-
-	// Pause Menu
-	if (pauseState == 1) iShowBMP2(CENTER[0] - 222, CENTER[1] - 218, "Images/PauseMenu.bmp", 0x0000ff);
-	/*
-	iSetColor(255, 0, 0);
-	iCircle(250, 543, 32); // Play
-	iCircle(250, 238, 32); // Exit
-	iCircle(397, 433, 32); // Controls
-	iCircle(100, 434, 32); // Settings
-	*/
-
-	// Show Formation
-	if (askFormation == 1) showFormationPopup();
-
-	// Show Menu
-	if (showMenu == 1) iShowBMP(0, 5, "Images/MainMenu.bmp");
-	// testForMenu();
-
-	// Show Settings
-	if (settingsState == 1) showSettings();
-
-	// Show Game Mode Help
-	if (gameModeHelpState == 1) showGameModeHelp();
-
-	// Show Controls
-	if (controlsState == 1) showControls();
 	
 	// Goal Celebration Pop up
 	if (showGoalPopUp == 1) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/BlueScores.bmp");
@@ -730,11 +704,28 @@ void iDraw()
 	// Win Pop Up
 	if (showGoalPopUp == 3) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/BlueWins.bmp");
 	if (showGoalPopUp == 4) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/RedWins.bmp");
+	
+	// Pause Menu
+	if (pauseState == 1) iShowBMP2(CENTER[0] - 222, CENTER[1] - 218, "Images/PauseMenu.bmp", 0x0000ff);
 
+	// Show Formation
+	if (askFormation) showFormationPopup();
+
+	// Show Menu
+	if (showMenu) iShowBMP(0, 5, "Images/MainMenu.bmp");
+	// testForMenu();
+
+	// Show Settings
+	if (settingsState) showSettings();
+
+	// Show Game Mode Help
+	if (gameModeHelpState) showGameModeHelp();
+
+	// Show Controls
+	if (controlsState) showControls();
+	
 	// Mute Button
 	iShowBMP2(450, 700, muteAddress[muteState], 0x0000ff);
-	// iCircle(472, 723, 16);
-	
 }
 
 void iMouse(int button, int state, int mx, int my)
@@ -747,35 +738,35 @@ void iMouse(int button, int state, int mx, int my)
 			muteState = (muteState + 1) % 2;
 		}
 
-		if (controlsState == 1)
+		if (controlsState)
 		{
 			// Close
 			if ((mx-57)*(mx-57) + (my-568)*(my-568) < 16*16)
 			{
-				controlsState = 0;
+				controlsState = false;
 			}
 		}
 
-		else if (gameModeHelpState == 1)
+		else if (gameModeHelpState)
 		{
 			// Close
 			if ((mx-57)*(mx-57) + (my-568)*(my-568) < 16*16)
 			{
-				gameModeHelpState = 0;
+				gameModeHelpState = false;
 			}
 		}
 
-		else if (settingsState == 1)
+		else if (settingsState)
 		{
 			// Close
 			if ((mx-57)*(mx-57) + (my-568)*(my-568) < 16*16)
 			{
-				settingsState = 0;
+				settingsState = false;
 			}
 			// Help
 			else if ((mx-348)*(mx-348) + (my-300)*(my-300) < 12*12) // iCircle(348, 300, 12);
 			{
-				gameModeHelpState = 1;
+				gameModeHelpState = true;
 			}
 			// Game Mode
 			else if (my > 224 && my < 259)
@@ -801,12 +792,12 @@ void iMouse(int button, int state, int mx, int my)
 			}
 		}
 
-		else if (showMenu == 1)
+		else if (showMenu)
 		{
 			// Play
 			if (((mx-252.0)/57.0)*((mx-252.0)/57.0) + ((my-520.0)/22.0)*((my-520.0)/22.0) < 1)
 			{
-				askFormation = 1;
+				askFormation = true;
 				initializeMatch();
 			}
 			// Exit
@@ -817,18 +808,18 @@ void iMouse(int button, int state, int mx, int my)
 			// Settings
 			else if ((mx-100)*(mx-100) + (my-434)*(my-434) < 32*32)
 			{
-				settingsState = 1;
+				settingsState = true;
 				// printf("Settings\n");
 			}
 			// Controls
 			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
 			{
-				controlsState = 1;
+				controlsState = true;
 				// printf("Controls\n");
 			}
 		}
 
-		else if (askFormation == 1)
+		else if (askFormation)
 		{
 			// Blue Team
 			if (my > 147 && my < 252)
@@ -861,7 +852,7 @@ void iMouse(int button, int state, int mx, int my)
 			// Play
 			else if (((mx-CENTER[0])/57.0)*((mx-CENTER[0])/57.0) + ((my-CENTER[1])/22.0)*((my-CENTER[1])/22.0) < 1)
 			{
-				askFormation = 0;
+				askFormation = false;
 				if (muteState == 0) PlaySound("Sounds\\KickOff.wav", NULL, SND_ASYNC);
 				iResumeTimer(0);
 			}
@@ -878,20 +869,20 @@ void iMouse(int button, int state, int mx, int my)
 			// Exit
 			else if ((mx-250)*(mx-250) + (my-238)*(my-238) < 32*32)
 			{
-				showMenu = 1;
+				showMenu = true;
 				pauseState = 0;
 				iPauseTimer(0);
 			}
 			// Settings
 			else if ((mx-100)*(mx-100) + (my-434)*(my-434) < 32*32)
 			{
-				settingsState = 1;
+				settingsState = true;
 				// printf("Settings\n");
 			}
 			// Controls
 			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
 			{
-				controlsState = 1;
+				controlsState = true;
 				// printf("Controls\n");
 			}
 		}
@@ -902,7 +893,7 @@ void iMouse(int button, int state, int mx, int my)
 			// printf("Selected: %d\n", selectedPlayer);
 
 			// Pause
-			if ((mx-422)*(mx-422) + (my-723)*(my-723) < 16*16)
+			if (((mx-422)*(mx-422) + (my-723)*(my-723) < 16*16))
 			{
 				pauseState = (pauseState + 1) % 2;
 
@@ -914,7 +905,7 @@ void iMouse(int button, int state, int mx, int my)
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
-		if (isMovePossible() == 1)
+		if (isMovePossible())
 		{
 			// powerX -= minDr * (powerX / d); // Subtracting min condition to start from 0
 			// powerY -= minDr * (powerY / d);
@@ -953,7 +944,7 @@ void iKeyboard(unsigned char key)
 		muteState = (muteState + 1) % 2;
 	}
 
-	if (showMenu == 0 && askFormation == 0)
+	if (!showMenu && !askFormation)
 	{
 		if (key == 'p')
 		{
@@ -966,10 +957,10 @@ void iKeyboard(unsigned char key)
 
 	if (key == 27) // Esc key
 	{
-		if (controlsState == 1) controlsState = 0;
-		else if (gameModeHelpState == 1) gameModeHelpState = 0;
-		else if (settingsState == 1) settingsState = 0;
-		else if (showMenu == 0 && askFormation == 0)
+		if (controlsState) controlsState = false;
+		else if (gameModeHelpState) gameModeHelpState = false;
+		else if (settingsState) settingsState = false;
+		else if (!showMenu && !askFormation)
 		{
 			pauseState = (pauseState + 1) % 2;
 

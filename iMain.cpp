@@ -46,6 +46,15 @@ double poly[2][12] = {{MAPBORDER[0][0], MAPBORDER[0][0], MAPBORDER[0][1], MAPBOR
 
 const double ARROW[2][7] = {{50, 50, 70, 50, 50, 0, 0}, {8, 20, 0, -20, -8, -8, 8}};
 
+const double OUTLINE[4][12][2] = {{{0, 20}, {10, 17.32}, {17.32, 10}, {20, 0}, {17.32, -10}, {10, -17.32},
+									{0, -20}, {-10, -17.32}, {-17.32, -10}, {-20, 0}, {-17.32, 10}, {-10, 17.32}},
+								{{5, 18.66}, {13.66, 13.66}, {18.66, 5}, {18.66, -5}, {13.66, -13.66}, {5, -18.66},
+									{-5, -18.66}, {-13.66, -13.66}, {-18.66, -5}, {-18.66, 5}, {-13.66, 13.66}, {-5, 18.66}},
+								{{10, 17.32}, {17.32, 10}, {20, 0}, {17.32, -10}, {10, -17.32}, {0, -20},
+									{-10, -17.32}, {-17.32, -10}, {-20, 0}, {-17.32, 10}, {-10, 17.32}, {0, 20}},
+								{{13.66, 13.66}, {18.66, 5}, {18.66, -5}, {13.66, -13.66}, {5, -18.66}, {-5, -18.66},
+									{-13.66, -13.66}, {-18.66, -5}, {-18.66, 5}, {-13.66, 13.66}, {-5, 18.66}, {5, 18.66}}};
+
 const double FORMATION[][5][2] = {{{0, 70}, {55, 30}, {-55, 30}, {0, 150}, {0, 275}},
 									{{0, 60}, {100, 140}, {-100, 140}, {0, 160}, {0, 275}},
 									{{35, 110}, {-35, 110}, {100, 80}, {-100, 80}, {0, 275}},
@@ -75,6 +84,10 @@ double deviationLimit;
 double maxDevLimit = DEFDEVLIMIT;
 int deviationMeter = 0;
 int deviationNext = 1;
+
+
+int outlineMeter = 0;
+int outlineIdx = 0;
 
 
 int goalNum[2] = {0};
@@ -188,9 +201,8 @@ bool isMoving()
 bool isMovePossible()
 {
 	double d = sqrt(powerX*powerX + powerY*powerY);
-	if (!showMenu && moveEnd && d > minDr &&
-		selectedPlayer > (movingSide-1)*perTeam && selectedPlayer <= movingSide*perTeam &&
-		!askFormation)
+	if (!showMenu && moveEnd && d > minDr && !askFormation &&
+		selectedPlayer > (movingSide-1)*perTeam && selectedPlayer <= movingSide*perTeam)
 	{
 		return true;
 	}
@@ -531,6 +543,23 @@ void drawPlayers()
 		iSetColor(0, 0 ,0);
 		for (double j = 0; j < .6; j+=.1) iCircle(objects[i].p[0], objects[i].p[1], objects[i].r+j);
 	}
+
+	if (moveEnd)
+	{
+		double x1, y1, x2, y2;
+		for (int i = ((movingSide-1)*perTeam) + 1; i <= movingSide*perTeam; i++)
+		{
+			iSetColor(0, 0, 0);
+			for (int j = 0; j < 6; j++)
+			{
+				x1 = objects[i].p[0] + OUTLINE[outlineIdx][2*j][0];
+				y1 = objects[i].p[1] + OUTLINE[outlineIdx][2*j][1];
+				x2 = objects[i].p[0] + OUTLINE[outlineIdx][2*j+1][0];
+				y2 = objects[i].p[1] + OUTLINE[outlineIdx][2*j+1][1];
+				iLine(x1, y1, x2, y2);
+			}
+		}
+	}
 }
 
 void drawArrow(double* p)
@@ -654,6 +683,10 @@ void perFrame()
 		collisionWithBorder();
 		collisionWithObject();
 		isGoal();
+
+		outlineMeter++;
+		outlineMeter %= 40;
+		outlineIdx = outlineMeter / 10;
 	}
 
 	if (!moveEnd) swapMove();
@@ -950,7 +983,11 @@ void iKeyboard(unsigned char key)
 		{
 			pauseState = (pauseState + 1) % 2;
 
-			if (pauseState == 1) iPauseTimer(0);
+			if (pauseState == 1)
+			{
+				iPauseTimer(0);
+				selectedPlayer = 0;
+			}
 			else iResumeTimer(0);
 		}
 	}
@@ -964,7 +1001,11 @@ void iKeyboard(unsigned char key)
 		{
 			pauseState = (pauseState + 1) % 2;
 
-			if (pauseState == 1) iPauseTimer(0);
+			if (pauseState == 1)
+			{
+				iPauseTimer(0);
+				selectedPlayer = 0;
+			}
 			else iResumeTimer(0);
 		}
 	}

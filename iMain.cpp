@@ -85,10 +85,8 @@ double maxDevLimit = DEFDEVLIMIT;
 int deviationMeter = 0;
 int deviationNext = 1;
 
-
 int outlineMeter = 0;
 int outlineIdx = 0;
-
 
 int goalNum[2] = {0};
 int winGoal = 3;
@@ -503,7 +501,7 @@ void isGoal()
 			if (muteState == 0) PlaySound("Sounds\\Goal.wav", NULL, SND_ASYNC);
 
 			// Win
-			if (goalNum[showGoalPopUp-1] == winGoal)
+			if (goalNum[showGoalPopUp-1] >= winGoal)
 			{
 				if (muteState == 0) PlaySound("Sounds\\Win.wav", NULL, SND_ASYNC);
 				showGoalPopUp += 2;
@@ -544,6 +542,7 @@ void drawPlayers()
 		for (double j = 0; j < .6; j+=.1) iCircle(objects[i].p[0], objects[i].p[1], objects[i].r+j);
 	}
 
+	// For Player Outline of Moving Side
 	if (moveEnd)
 	{
 		double x1, y1, x2, y2;
@@ -648,33 +647,8 @@ void showFormationPopup()
 
 
 
-void testForMenu()
-{
-	/*
-	Start - 250, 520
-	Settings - 100, 415 -- 25
-	Controls - 400, 415 -- 25
-	Exit - 255, 220
-	*/
-
-	iSetColor(255, 0, 0);
-	iCircle(105, 415, 30); // Settings
-	iCircle(402, 415, 30); // Controls
-	iEllipse(252, 520, 55, 22); // Play
-	iEllipse(254, 222, 57, 20); // Exit
-}
-
-
-
-
-
 void perFrame()
 {
-	// clock_t start1, end;
-    // double cpu_time_used;
-    // start1 = clock();
-
-
 	if (selectedPlayer != 0) addDeviation();
 
 	if (!showMenu)
@@ -684,20 +658,16 @@ void perFrame()
 		collisionWithObject();
 		isGoal();
 
+
+		// For player outline
 		outlineMeter++;
-		outlineMeter %= 40;
-		outlineIdx = outlineMeter / 10;
+		outlineMeter %= 32;
+		outlineIdx = outlineMeter / 8;
 	}
 
 	if (!moveEnd) swapMove();
 
 	if (goalCelebTimer != 0 && goalCelebTimer <= clock()) goalCelebration();
-
-
-
-	// end = clock();
-    // cpu_time_used = ((double) (end - start1)) / CLOCKS_PER_SEC;
-    // printf("Execution time: %f seconds\n", cpu_time_used);
 }
 
 
@@ -720,7 +690,6 @@ void iDraw()
 	drawArrow(objects[selectedPlayer].p);
 
 	// Draw Ball
-	// iShowBMP2(objects[0].p[0]-10, objects[0].p[1]-10, "Images/BallNew.bmp", 0x00FF00);
 	drawBall();
 
 	// Draw Objects
@@ -728,7 +697,6 @@ void iDraw()
 
 	// Pause Button
 	iShowBMP2(400, 700, pauseAddress[pauseState], 0x0000ff);
-	// iCircle(422, 723, 16);
 	
 	// Goal Celebration Pop up
 	if (showGoalPopUp == 1) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/BlueScores.bmp");
@@ -746,7 +714,6 @@ void iDraw()
 
 	// Show Menu
 	if (showMenu) iShowBMP(0, 5, "Images/MainMenu.bmp");
-	// testForMenu();
 
 	// Show Settings
 	if (settingsState) showSettings();
@@ -770,6 +737,7 @@ void iMouse(int button, int state, int mx, int my)
 		{
 			muteState = (muteState + 1) % 2;
 		}
+
 
 		if (controlsState)
 		{
@@ -842,13 +810,11 @@ void iMouse(int button, int state, int mx, int my)
 			else if ((mx-100)*(mx-100) + (my-434)*(my-434) < 32*32)
 			{
 				settingsState = true;
-				// printf("Settings\n");
 			}
 			// Controls
 			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
 			{
 				controlsState = true;
-				// printf("Controls\n");
 			}
 		}
 
@@ -910,23 +876,20 @@ void iMouse(int button, int state, int mx, int my)
 			else if ((mx-100)*(mx-100) + (my-434)*(my-434) < 32*32)
 			{
 				settingsState = true;
-				// printf("Settings\n");
 			}
 			// Controls
 			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
 			{
 				controlsState = true;
-				// printf("Controls\n");
 			}
 		}
 
 		else 
 		{
 			selectedPlayer = selectObject(mx, my);
-			// printf("Selected: %d\n", selectedPlayer);
 
 			// Pause
-			if (((mx-422)*(mx-422) + (my-723)*(my-723) < 16*16))
+			if ((mx-422)*(mx-422) + (my-723)*(my-723) < 16*16)
 			{
 				pauseState = (pauseState + 1) % 2;
 
@@ -938,12 +901,7 @@ void iMouse(int button, int state, int mx, int my)
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
-		if (isMovePossible())
-		{
-			// powerX -= minDr * (powerX / d); // Subtracting min condition to start from 0
-			// powerY -= minDr * (powerY / d);
-			addVelocity();
-		}
+		if (isMovePossible()) addVelocity();
 		powerX = 0;
 		powerY = 0;
 		selectedPlayer = 0;

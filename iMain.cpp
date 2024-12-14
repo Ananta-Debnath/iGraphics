@@ -600,6 +600,12 @@ void showGameModeHelp()
 	iShowBMP2(35, 545, "Images/Close.bmp", 0x0000ff);
 }
 
+void showControls()
+{
+	iShowBMP(50, 175, "Images/Controls.bmp");
+	iShowBMP2(35, 545, "Images/Close.bmp", 0x0000ff);
+}
+
 void showFormationPopup()
 {
 	iShowBMP2(0, 100, "Images/FormationBlue.bmp", 0x0000ff);
@@ -713,6 +719,9 @@ void iDraw()
 
 	// Show Game Mode Help
 	if (gameModeHelpState == 1) showGameModeHelp();
+
+	// Show Controls
+	if (controlsState == 1) showControls();
 	
 	// Goal Celebration Pop up
 	if (showGoalPopUp == 1) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/BlueScores.bmp");
@@ -738,7 +747,16 @@ void iMouse(int button, int state, int mx, int my)
 			muteState = (muteState + 1) % 2;
 		}
 
-		if (gameModeHelpState == 1)
+		if (controlsState == 1)
+		{
+			// Close
+			if ((mx-57)*(mx-57) + (my-568)*(my-568) < 16*16)
+			{
+				controlsState = 0;
+			}
+		}
+
+		else if (gameModeHelpState == 1)
 		{
 			// Close
 			if ((mx-57)*(mx-57) + (my-568)*(my-568) < 16*16)
@@ -805,7 +823,8 @@ void iMouse(int button, int state, int mx, int my)
 			// Controls
 			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
 			{
-				printf("Controls\n");
+				controlsState = 1;
+				// printf("Controls\n");
 			}
 		}
 
@@ -872,7 +891,8 @@ void iMouse(int button, int state, int mx, int my)
 			// Controls
 			else if ((mx-397)*(mx-397) + (my-433)*(my-433) < 32*32)
 			{
-				printf("Controls\n");
+				controlsState = 1;
+				// printf("Controls\n");
 			}
 		}
 

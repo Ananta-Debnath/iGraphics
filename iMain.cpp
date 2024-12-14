@@ -430,7 +430,7 @@ void collisionWithObject()
 			{
 				afterCollisionPosition(&objects[i], &objects[j], d);
 				afterCollisionVelocity(&objects[i], &objects[j]);
-				if (muteState == 0 && i == 0) PlaySound("Sounds\\Kick.wav", NULL, SND_ASYNC);
+				if (muteState == 0 && i == 0 && goalCelebTimer == 0) PlaySound("Sounds\\Kick.wav", NULL, SND_ASYNC);
 			}
 		}
 	}
@@ -594,6 +594,12 @@ void showSettings()
 
 }
 
+void showGameModeHelp()
+{
+	iShowBMP(50, 175, "Images/GameModeHelp.bmp");
+	iShowBMP2(35, 545, "Images/Close.bmp", 0x0000ff);
+}
+
 void showFormationPopup()
 {
 	iShowBMP2(0, 100, "Images/FormationBlue.bmp", 0x0000ff);
@@ -704,6 +710,9 @@ void iDraw()
 
 	// Show Settings
 	if (settingsState == 1) showSettings();
+
+	// Show Game Mode Help
+	if (gameModeHelpState == 1) showGameModeHelp();
 	
 	// Goal Celebration Pop up
 	if (showGoalPopUp == 1) iShowBMP(CENTER[0] - 125, CENTER[1] - 125, "Images/BlueScores.bmp");
@@ -729,7 +738,16 @@ void iMouse(int button, int state, int mx, int my)
 			muteState = (muteState + 1) % 2;
 		}
 
-		if (settingsState == 1)
+		if (gameModeHelpState == 1)
+		{
+			// Close
+			if ((mx-57)*(mx-57) + (my-568)*(my-568) < 16*16)
+			{
+				gameModeHelpState = 0;
+			}
+		}
+
+		else if (settingsState == 1)
 		{
 			// Close
 			if ((mx-57)*(mx-57) + (my-568)*(my-568) < 16*16)
@@ -740,7 +758,6 @@ void iMouse(int button, int state, int mx, int my)
 			else if ((mx-348)*(mx-348) + (my-300)*(my-300) < 12*12) // iCircle(348, 300, 12);
 			{
 				gameModeHelpState = 1;
-				printf("Help!\n");
 			}
 			// Game Mode
 			else if (my > 224 && my < 259)

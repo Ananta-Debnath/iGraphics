@@ -963,6 +963,20 @@ void iKeyboard(unsigned char key)
 			else iResumeTimer(0);
 		}
 	}
+
+	if (key == 27) // Esc key
+	{
+		if (controlsState == 1) controlsState = 0;
+		else if (gameModeHelpState == 1) gameModeHelpState = 0;
+		else if (settingsState == 1) settingsState = 0;
+		else if (showMenu == 0 && askFormation == 0)
+		{
+			pauseState = (pauseState + 1) % 2;
+
+			if (pauseState == 1) iPauseTimer(0);
+			else iResumeTimer(0);
+		}
+	}
 }
 
 void iSpecialKeyboard(unsigned char key)
